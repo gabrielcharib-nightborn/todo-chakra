@@ -56,9 +56,11 @@ function TodoList() {
       setNewTaskTitle("");
     }
   };
-
+  /////////////////////////////////////////////////////////////////////
+  // function qui declanche une nouvelle tache si on appye sur enter
+  ///////////////////////////////////////////////////////////////////
   function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
-    if (event.key === "Enter") {
+    if (event.key === "Enter" && newTaskTitle.trim() !== "") {
       console.log("L'utilisateur a appuyé sur la touche Entrée !");
       setNewTaskTitle(event.currentTarget.value);
       addTask();
@@ -95,8 +97,8 @@ function TodoList() {
 
   return (
     <VStack>
-
-      <Button onClick={toggleColorMode} m={4}>
+      <Button onClick={toggleColorMode} m={4} float='right'>
+        {colorMode === "light" ? <MoonIcon /> : <SunIcon />}
         Toggle {colorMode === "light" ? "Dark" : "Light"}
       </Button>
       <Heading as='h1' size='2xl'>
@@ -110,15 +112,11 @@ function TodoList() {
       />
 
       {/*  centre le bouton  */}
-      <Button mx='auto' onClick={addTask}>
+      <Button disabled={inputValue.trim() === ''} mx='auto' onClick={addTask}>
         Add Task
       </Button>
       {tasks.map((task) => (
-        <Checkbox
-          key={task.id}
-          isChecked={task.completed}
-          onChange={() => toggleComplete(task.id)}
-        >
+        <Checkbox key={task.id} isChecked={task.completed}>
           {task.title}
 
           <DeleteIcon boxSize={4} onClick={() => removeTask(task.id)} />
