@@ -1,4 +1,6 @@
 import { useState } from "react";
+
+import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
 import {
   ChakraProvider,
   VStack,
@@ -8,14 +10,14 @@ import {
   Checkbox,
   CloseButton,
   extendTheme,
+  ColorModeScript,
+  useColorMode,
 } from "@chakra-ui/react";
-
-import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
 
 const theme = extendTheme({
   config: {
+    initialColorMode: "light",
     useSystemColorMode: false,
-    initialColorMode: "dark",
   },
 });
 
@@ -25,94 +27,54 @@ type Task = {
   completed: boolean;
 };
 
-function TaskItem({
-  task,
-  onToggle,
-  onRemove,
-}: {
-  task: Task;
-  onToggle: () => void;
-  onRemove: () => void;
-}) {
-  return (
-    <Checkbox isChecked={task.completed} onChange={onToggle}>
-      {task.title}
-      <CloseButton onClick={onRemove} />
-    </Checkbox>
-  );
-}
+function TodoList() {
+  //////////////////////////////////////////////////////
+  // block 1 : les variables + setteurs
+  //////////////////////////////////////////////////////
+  const { colorMode, toggleColorMode } = useColorMode();
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [newTaskTitle, setNewTaskTitle] = useState<string>("");
 
-function TaskList({
-  tasks,
-  onToggle,
-  onRemove,
-}: {
-  tasks: Task[];
-  onToggle: (taskId: number) => void;
-  onRemove: (taskId: number) => void;
-}) {
-  return (
-    <>
-      {tasks.map((task) => (
-        <TaskItem
-          key={task.id}
-          task={task}
-          onToggle={() => onToggle(task.id)}
-          onRemove={() => onRemove(task.id)}
-        />
-      ))}
-    </>
-  );
-}
-
-function AddTaskForm({ onAdd }: { onAdd: (newTaskTitle: string) => void }) {
-  const [newTaskTitle, setNewTaskTitle] = useState("");
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  ////////////////////////////////////////////////////
+  // Fonction pour ajouter une tâche
+  ///////////////////////////////////////////////////
+  const addTask = () => {
     if (newTaskTitle) {
-      onAdd(newTaskTitle);
+      const newTask: Task = {
+        id: Date.now(),
+        title: newTaskTitle,
+        completed: false,
+      };
+      //////////////////////////////////////////////////////
+      // On ajoute la nouvelle
+      /////////////////////////////////////////////////////
+      setTasks([...tasks, newTask]);
+      // On réinitialise le champ de saisie du nouveau titre
       setNewTaskTitle("");
     }
   };
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <Input
-        placeholder='Add a task'
-        value={newTaskTitle}
-        onChange={(e) => setNewTaskTitle(e.target.value)}
-      />
-
-      <Button type='submit' leftIcon={<AddIcon />} variant='outline'>
-        Add Task
-      </Button>
-    </form>
-  );
-}
-
-function App() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-
-  const addTask = (newTaskTitle: string) => {
-    const newTask: Task = {
-      id: Date.now(),
-      title: newTaskTitle,
-      completed: false,
-    };
-    setTasks([...tasks, newTask]);
-  };
-
+  /////////////////////////////////////////////////////////
+  // Fonction pour supprimer une tâche
+  /////////////////////////////////////////////
   const removeTask = (taskId: number) => {
+    // On filtre les tâches pour retirer celle qui a l'id correspondant
     setTasks(tasks.filter((task) => task.id !== taskId));
   };
-
+  ////////////////////////////////////////////////////////////////
+  // Fonction pour changer l'état d'une tâche
+  //////////////////////////////////////////////////////////////////
   const toggleComplete = (taskId: number) => {
     setTasks(
       tasks.map((task) => {
         if (task.id === taskId) {
+          /////////////////////////////////////////////////////////////////////////////
+          // On retourne une copie de la tache mis à jour
+          ////////////////////////////////////////////////////////////////////////
           return { ...task, completed: !task.completed };
         } else {
+          ////////////////////////////////////////////////
+          // tout autre taches
+          ///////////////////////////////////////////////
           return task;
         }
       })
@@ -121,21 +83,44 @@ function App() {
 
   return (
     <VStack>
+      <Button onClick={toggleColorMode} m={4}>
+        Toggle {colorMode === "light" ? "Dark" : "Light"}
+      </Button>
       <Heading as='h1' size='2xl'>
         My Todo List
       </Heading>
-      <AddTaskForm onAdd={addTask} />
-      <TaskList tasks={tasks} onToggle={toggleComplete} onRemove={removeTask} />
+      <Input
+        placeholder='Add a task'
+        value={newTaskTitle}
+        onChange={(e) => setNewTaskTitle(e.target.value)}
+      />
+
+      {/* On centre le bouton à l'aide de la propriété "mx" */}
+      <Button mx='auto' onClick={addTask}>
+        Add Task
+      </Button>
+      {tasks.map((task) => (
+        <Checkbox
+          key={task.id}
+          isChecked={task.completed}
+          onChange={() => toggleComplete(task.id)}
+        >
+          {task.title}
+
+          <DeleteIcon boxSize={4} onClick={() => removeTask(task.id)} />
+        </Checkbox>
+      ))}
     </VStack>
   );
 }
 
-function MainApp() {
+function App() {
   return (
     <ChakraProvider theme={theme}>
-      <App />
+      <ColorModeScript initialColorMode={theme.config.initialColorMode} />
+      <TodoList />
     </ChakraProvider>
   );
 }
 
-export default MainApp;
+export default App;
