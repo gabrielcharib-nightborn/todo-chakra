@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
+import { AddIcon, DeleteIcon, MoonIcon, SunIcon } from "@chakra-ui/icons";
 import {
   ChakraProvider,
   VStack,
@@ -8,6 +8,7 @@ import {
   Input,
   Button,
   Checkbox,
+  IconButton,
   CloseButton,
   extendTheme,
   ColorModeScript,
@@ -35,6 +36,8 @@ function TodoList() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTaskTitle, setNewTaskTitle] = useState<string>("");
 
+  const [inputValue, setInputValue] = useState("");
+
   ////////////////////////////////////////////////////
   // Fonction pour ajouter une tâche
   ///////////////////////////////////////////////////
@@ -53,6 +56,15 @@ function TodoList() {
       setNewTaskTitle("");
     }
   };
+
+  function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "Enter") {
+      console.log("L'utilisateur a appuyé sur la touche Entrée !");
+      setNewTaskTitle(event.currentTarget.value);
+      addTask();
+    }
+  }
+
   /////////////////////////////////////////////////////////
   // Fonction pour supprimer une tâche
   /////////////////////////////////////////////
@@ -83,6 +95,7 @@ function TodoList() {
 
   return (
     <VStack>
+
       <Button onClick={toggleColorMode} m={4}>
         Toggle {colorMode === "light" ? "Dark" : "Light"}
       </Button>
@@ -93,9 +106,10 @@ function TodoList() {
         placeholder='Add a task'
         value={newTaskTitle}
         onChange={(e) => setNewTaskTitle(e.target.value)}
+        onKeyDown={(e) => handleKeyDown(e)}
       />
 
-      {/* On centre le bouton à l'aide de la propriété "mx" */}
+      {/*  centre le bouton  */}
       <Button mx='auto' onClick={addTask}>
         Add Task
       </Button>
