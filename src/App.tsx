@@ -1,6 +1,4 @@
 import { useState } from "react";
-
-import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
 import {
   ChakraProvider,
   VStack,
@@ -12,16 +10,7 @@ import {
   extendTheme,
 } from "@chakra-ui/react";
 
-// The default icon size is 1em (16px)
-{
-  /* <PhoneIcon />
-
-// Use the `boxSize` prop to change the icon size
-<AddIcon boxSize={6} />
-
-// Use the `color` prop to change the icon color
-<WarningIcon w={8} h={8} color="red.500" /> */
-}
+import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
 
 const theme = extendTheme({
   config: {
@@ -36,20 +25,82 @@ type Task = {
   completed: boolean;
 };
 
-function App() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [newTaskTitle, setNewTaskTitle] = useState<string>("");
+function TaskItem({
+  task,
+  onToggle,
+  onRemove,
+}: {
+  task: Task;
+  onToggle: () => void;
+  onRemove: () => void;
+}) {
+  return (
+    <Checkbox isChecked={task.completed} onChange={onToggle}>
+      {task.title}
+      <CloseButton onClick={onRemove} />
+    </Checkbox>
+  );
+}
 
-  const addTask = () => {
+function TaskList({
+  tasks,
+  onToggle,
+  onRemove,
+}: {
+  tasks: Task[];
+  onToggle: (taskId: number) => void;
+  onRemove: (taskId: number) => void;
+}) {
+  return (
+    <>
+      {tasks.map((task) => (
+        <TaskItem
+          key={task.id}
+          task={task}
+          onToggle={() => onToggle(task.id)}
+          onRemove={() => onRemove(task.id)}
+        />
+      ))}
+    </>
+  );
+}
+
+function AddTaskForm({ onAdd }: { onAdd: (newTaskTitle: string) => void }) {
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     if (newTaskTitle) {
-      const newTask: Task = {
-        id: Date.now(),
-        title: newTaskTitle,
-        completed: false,
-      };
-      setTasks([...tasks, newTask]);
+      onAdd(newTaskTitle);
       setNewTaskTitle("");
     }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <Input
+        placeholder='Add a task'
+        value={newTaskTitle}
+        onChange={(e) => setNewTaskTitle(e.target.value)}
+      />
+
+      <Button type='submit' leftIcon={<AddIcon />} variant='outline'>
+        Add Task
+      </Button>
+    </form>
+  );
+}
+
+function App() {
+  const [tasks, setTasks] = useState<Task[]>([]);
+
+  const addTask = (newTaskTitle: string) => {
+    const newTask: Task = {
+      id: Date.now(),
+      title: newTaskTitle,
+      completed: false,
+    };
+    setTasks([...tasks, newTask]);
   };
 
   const removeTask = (taskId: number) => {
@@ -73,23 +124,8 @@ function App() {
       <Heading as='h1' size='2xl'>
         My Todo List
       </Heading>
-      <Input
-        placeholder='Add a task'
-        value={newTaskTitle}
-        onChange={(e) => setNewTaskTitle(e.target.value)}
-      />
-      <AddIcon onClick={addTask}>Add Task</AddIcon>
-      {tasks.map((task) => (
-        <Checkbox
-          key={task.id}
-          isChecked={task.completed}
-          onChange={() => toggleComplete(task.id)}
-        >
-          {task.title}
-
-          <DeleteIcon boxSize={4} onClick={() => removeTask(task.id)} />
-        </Checkbox>
-      ))}
+      <AddTaskForm onAdd={addTask} />
+      <TaskList tasks={tasks} onToggle={toggleComplete} onRemove={removeTask} />
     </VStack>
   );
 }
